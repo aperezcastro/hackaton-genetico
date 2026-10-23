@@ -1,0 +1,20 @@
+fecha,tarea,proyecto,cpu,mem_gib,render_s,total_s,coste_usd_est,ok
+2026-10-01 03:15,exomiser-refs,hackaton-genetico,4.0,8,2794,2810,0.196,True
+2026-10-01 06:19,refs,hackaton-genetico,2.0,4,2304,2335,0.081,True
+2026-10-01 07:52,anotar ×1,hackaton-genetico,4.0,8,355,558,0.025,True
+2026-10-01 07:53,filtra,hackaton-genetico,4,16,18,18,0.002,True
+2026-10-01 08:27,exomiser A+B,hackaton-genetico,4.0,24,2,30,0.0,False
+2026-10-01 08:44,anotar ×25,hackaton-genetico,4.0,8,13305,1142,0.934,True
+2026-10-01 08:57,filtra,hackaton-genetico,4,16,792,792,0.07,True
+2026-10-02 18:04,exomiser A+B,hackaton-genetico,4.0,24,26,74,0.003,False
+2026-10-02 18:04,spliceai panel,hackaton-genetico,4.0,8,1,37,0.0,False
+2026-10-02 18:05,exomiser A+B,hackaton-genetico,4.0,24,5,14,0.001,False
+2026-10-02 18:05,spliceai panel,hackaton-genetico,4.0,8,18,26,0.001,False
+2026-10-02 18:06,exomiser A+B,hackaton-genetico,4.0,24,2,11,0.0,False
+2026-10-02 18:07,exomiser A+B,hackaton-genetico,4.0,24,42,55,0.004,False
+2026-10-02 18:10,spliceai panel,hackaton-genetico,4.0,8,222,275,0.016,True
+2026-10-02 18:14,exomiser A+B,hackaton-genetico,4.0,24,394,409,0.042,True
+2026-10-02 20:17,fase viable,hackaton-genetico,1.0,2,0,0,0.0,True
+2026-10-03 04:58,balance alélico,hackaton-genetico,2.0,4,23,29,0.001,True
+2026-10-03 04:59,balance alélico diagnóstico,hackaton-genetico,2.0,4,25,30,0.001,True
+2026-10-03 05:00,homocigosidad,hackaton-genetico,2.0,4,18,18,0.001,True

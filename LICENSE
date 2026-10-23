@@ -1,0 +1,44 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Agustín Pérez Castro
+
+This repository contains the submission materials for "Rare Disease, Real Kid: The MVA Hackathon 2026",
+organised by Sage Bionetworks with the MVA Society, Hugging Face and BEACON.
+
+WHAT THIS LICENCE COVERS
+    The original work in this repository: the analysis code (scripts/), the reports and figures (reports/),
+    the documentation (docs/) and the research notes (research_notes/).
+
+    You are free to share and adapt this material for any purpose, including commercially, provided you give
+    appropriate credit, link to the licence, and indicate if changes were made.
+
+    Full licence text: https://creativecommons.org/licenses/by/4.0/legalcode
+    Summary:           https://creativecommons.org/licenses/by/4.0/
+
+WHAT THIS LICENCE DOES NOT COVER
+    The Hackathon dataset. The genomic and clinical data of the child are controlled-access material
+    (WCG IRB protocol #20252010), governed by the Hackathon Rules and the Data Transfer Agreement. They are
+    NOT contained in this repository and are NOT redistributed under this licence. They are deleted within 30 days
+    after the Hackathon closes, as the terms require.
+
+    Files in this repository that are not original work:
+      - reports/latex/fonts/ — IBM Plex fonts, SIL Open Font License 1.1 (reports/latex/fonts/OFL.txt);
+      - docs/methods_description_form.xlsx and docs/track1_submission_template.csv — templates provided by the
+        hackathon organisers;
+      - fields taken from ChEMBL in reports/t2/*.csv and *.md (molecule identifiers, phases, mechanisms) —
+        ChEMBL data are CC BY-SA 3.0.
+
+    Third-party components, each under its own terms. In particular, AlphaMissense predictions are CC BY-NC-SA
+    4.0 and were used here under their non-commercial terms; ClinVar, gnomAD, Ensembl, UniProt, ChEMBL,
+    openFDA, LINCS, Exomiser and the other public resources cited in the reports keep their own licences.
+
+ACKNOWLEDGEMENT
+    This work was made possible through the Hackathon, organized by Sage Bionetworks in partnership with the
+    MVA Society, Hugging Face, and BEACON (The Benchmarking, Evaluation, and Assessment Consortium for
+    Science), with prize sponsorship from AWS and Anthropic. We are deeply grateful to the child and their
+    family who generously contributed their data and their story to advance research into this rare disease.
+    We acknowledge their trust in making this Hackathon possible.
+
+NOT MEDICAL ADVICE
+    Everything here is a research hypothesis for a clinical team to evaluate. Nothing in this repository is
+    medical advice, a diagnosis, or evidence that any medicine works in mosaic variegated aneuploidy.

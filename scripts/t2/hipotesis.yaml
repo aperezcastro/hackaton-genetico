@@ -1,0 +1,307 @@
+# hipotesis.yaml — modelo de mecanismo y líneas de reposicionamiento para el Track 2 (solo nivel gen/vía).
+#
+# Estructura reutilizable: para otro paciente/gen basta con cambiar `caso` y las `hipotesis`. Cada hipótesis
+# declara qué parte del mecanismo ataca, su evidencia (PMID + nivel + dirección) y sus fármacos semilla; las que
+# tienen `dianas_expandir` se completan automáticamente con todos los fármacos aprobados (ChEMBL max_phase 4) que
+# actúan sobre esas dianas. `candidatos.py` anota cada fármaco (ChEMBL + ficha FDA) y lo puntúa.
+#
+# Cada evidencia lleva `pmid` (literatura) o `fuente` (análisis propio reproducible, p. ej. CMap).
+# Niveles de evidencia (peso). Evidencia de BENEFICIO de la intervención:
+#   human_same_gene 1.0 · mouse_same_gene 0.8 · human_other 0.7 · mouse_other 0.5 · cell_same_gene 0.5 · cell_other 0.3
+#   animal_other 0.4 (modelo animal no mamífero) · feasibility_other 0.3 (tolerabilidad en otra enfermedad)
+# Evidencia de VALIDACIÓN DE DIANA (la vía está alterada, pero no se ha demostrado que modularla ayude):
+#   target_same_gene 0.5 · target_other 0.3
+# E = mejor estudio a favor + 0,1 por cada uno más (máx. +0,2) − 0,3 × Σ nivel de los `contrary` (máx. −0,3).
+# `harm` (puede dañar a ESTE niño) no resta de E: baja la seguridad S. `note` se documenta y no puntúa.
+
+caso:
+  gen: BUB1B
+  proteina: BUBR1
+  enfermedad: Mosaic variegated aneuploidy type 1 (OMIM 257300), autosomal recessive
+  alelos:
+    - clase: nonsense (UGA), exon 17/23, NMD predicted
+      efecto: null allele (no transcript)
+    - clase: missense in the C-terminal kinase domain
+      # La clase de este alelo NO está medida. Suijkerbuijk 2010 (PMID 20516114) separa los alelos MVA en dos
+      # clases y, en o junto al dominio quinasa, TODAS las sustituciones asociadas a enfermedad que probaron
+      # bajaron la proteína 5-10 veces; las de la clase B (Y155C, R550Q) están FUERA del dominio. La única
+      # sustitución del dominio que salió estable (Q921H) es un pasajero funcionalmente normal, en cis con la
+      # causal L844F: NO es un ejemplo de clase B (corregido el 4 oct tras la revisión independiente). Por eso el
+      # prior favorece A (0,75) sin llegar a 1: N1002K nunca se ha medido, y que el niño viva cuando el ratón
+      # X753/L1002P murió sugiere que N1002K conserva algo más de función que L1012P.
+      efecto: UNRESOLVED - two scenarios, decided by rung 1 of the validation ladder
+      escenarios:
+        - id: A
+          nombre: low-abundance (unstable, high turnover)
+          prior: 0.75
+          precedente: I909T, L1012P, R727C, R814H, L844F (5-10x less protein; turnover x2; HSP90/proteasome dependent)
+          consecuencia: abundance is the lever - H1 is on-mechanism; forced re-expression fully restored the
+            nocodazole response for I909T and L1012P, i.e. no functional defect beyond scarcity
+        - id: B
+          nombre: stable but dysfunctional (separation of function)
+          prior: 0.25
+          precedente: Y155C (stable, separation of function) and R550Q, both OUTSIDE the kinase domain; no
+            kinase-domain precedent exists
+          consecuencia: stabilisation is useless - H1 closes entirely and no approved drug restores the function;
+            the actionable set reduces to the safety card and the downstream lines
+      decide: BUBR1 immunoblot +/- cycloheximide chase in the child's cells (rung 1); pre-declared decision rule
+  mecanismo: >-
+    Partial loss of function. Total BUBR1 is low: one allele makes no protein and the other contributes, at most,
+    a reduced amount of full-length protein. BUBR1 function is dosage dependent (Bohers 2008, PMID 18932004):
+    small increases in residual protein should improve checkpoint fidelity, whereas further reductions or mitotic
+    stress worsen aneuploidy. WHICH defect the missense allele imposes (low abundance vs preserved abundance with
+    impaired function) is not measured in this child and gates the whole restoration branch (see `alelos`).
+  # Bucle de realimentación propio de este genotipo (predicción nueva, comprobable): los missense del dominio
+  # quinasa de BUBR1 necesitan HSP90 para plegarse y, sin ella, el proteasoma los elimina (Suijkerbuijk 2010,
+  # Fig. 3C); y las células humanas ANEUPLOIDES tienen el plegamiento dependiente de HSP90 deteriorado y la
+  # respuesta de choque térmico (HSF1) comprometida (Donnelly 2014, PMID 25205676). Si el escenario A es el
+  # correcto, la propia aneuploidía reduce la capacidad de plegar el alelo hipomórfico justo en las células que
+  # más lo necesitan: menos BUBR1 -> más aneuploidía -> peor plegamiento -> menos BUBR1 funcional.
+  bucle_hsp90:
+    cadena: [low BUBR1, aneuploidy, impaired HSP90/HSF1 folding capacity, less folded mutant BUBR1]
+    evidencia: [20516114, 25205676]
+    implicacion_terapeutica: >-
+      Explains why HSP90 inhibitors are an anti-target for THIS genotype even though they are aneuploidy-selective
+      in general (H5), and why an HSF1 amplifier is mechanistically attractive but carries the tolerance risk
+      (Donnelly 2014 identifies HSF1 overexpression as an aneuploidy-TOLERATING event).
+  # perfil de riesgo del paciente (HPO) → banderas que penalizan fármacos con esos efectos adversos
+  riesgos:
+    malignancy: [HP:0002859]          # rabdomiosarcoma + síndrome de predisposición
+    nephrotoxicity: [HP:0000121]      # nefrocalcinosis
+    myopathy: [HP:0003202]            # atrofia muscular
+    growth: [HP:0004322, HP:0001508]  # talla baja, fallo de medro
+    myelosuppression: [HP:0002859]    # quimioterapia previa/actual probable
+
+hipotesis:
+  - id: H1
+    nombre: Raise BUBR1 abundance by stabilising the hypomorphic protein (NAD+/SIRT2 axis)
+    bloqueo: "allele class unmeasured (one blot decides it); rhabdomyosarcoma depends on NAMPT/NAD+"
+    modo: restore
+    eje: correct
+    nivel_mecanismo: protein (acts on the missense allele product)
+    ajuste: 0.6
+    # M = 0,8 × P(escenario A) = 0,8 × 0,75 = 0,6. La incertidumbre sobre la clase del alelo pertenece a M (ajuste
+    # a ESTE genotipo), no a E (fuerza de la evidencia publicada). Antes (3 oct) era 0,5 con un prior 50/50 que se
+    # apoyaba en Q921H, un pasajero funcionalmente normal: corregido el 4 oct.
+    # Ajuste por fármaco: la NICOTINAMIDA es producto e inhibidor no competitivo de las sirtuinas a concentraciones
+    # fisiológicas (Bitterman 2002, PMID 12297502, del mismo laboratorio que North 2014), y North probó NMN, no
+    # nicotinamida; la niacina (vía Preiss-Handler) no tiene ese problema → -0,2 solo para la nicotinamida.
+    ajuste_farmaco: {NICOTINAMIDE: -0.2}
+    razon: >-
+      SIRT2 keeps BUBR1 Lys668 deacetylated, protecting it from APC/C-mediated degradation; NAD+ decline lowers
+      BUBR1. SIRT2 overexpression extends lifespan of BubR1 hypomorphic mice and the NAD+ precursor NMN raises
+      BUBR1 in vivo. CONDITIONAL on the child's missense allele being of the low-abundance class (scenario A, prior
+      0.75: every disease-associated kinase-domain substitution tested was 5-10x less abundant). The tested modality
+      (NMN, SIRT2 overexpression) is not an approved medicine; among approved precursors niacin is the better
+      mechanistic match, because nicotinamide is itself a sirtuin inhibitor at physiological concentrations. Lys668
+      lies upstream of codon 737, so the mark exists only on the missense allele's product.
+    evidencia:
+      - {pmid: 24825348, nivel: mouse_same_gene, dir: support, nota: "SIRT2/NMN raise BubR1; SIRT2 extends lifespan of BubR1 H/H mice"}
+      - {pmid: 23242215, nivel: mouse_same_gene, dir: support, nota: "more BubR1 protects against aneuploidy and cancer"}
+      - {pmid: 20516114, nivel: cell_same_gene, dir: support, nota: "ectopic BUBR1 restores the checkpoint in MVA patient cells; all disease-associated kinase-domain substitutions tested were 5-10x less abundant"}
+      - {pmid: 38009412, nivel: mouse_other, dir: contrary, nota: "SIRT2 overexpression does not extend lifespan in wild-type mice"}
+      - {pmid: 37616468, nivel: cell_other, dir: harm, nota: "RHABDOMYOSARCOMA (this patient's tumour) depends on NAMPT/NAD+ salvage: NAMPT inhibition causes necrosis in 10/10 RMS lines and complete tumour regression in vivo - the opposite therapeutic direction"}
+      - {pmid: 36371959, nivel: mouse_other, dir: harm, nota: "NR supplementation increased cancer prevalence and brain metastases in a TNBC model"}
+      - {pmid: 26488693, nivel: feasibility_other, dir: support, nota: "ONTRAC phase 3 RCT: nicotinamide 500 mg bid reduced new non-melanoma skin cancers 23% in 386 high-risk adults, well tolerated (different tumour biology: UV/DNA repair)"}
+    riesgo_curado:
+      penalizacion: 0.35
+      motivo: "NAD+ precursors feed the NAMPT salvage pathway that rhabdomyosarcoma depends on (PMID 37616468); not label-derived"
+    condiciones: "Only in documented remission, with intensified tumour surveillance (AACR 2024, PMID 39264246) as a stopping rule; antagonises NAMPT inhibitors should the tumour recur"
+    semillas: [NIACIN, NICOTINAMIDE, NICOTINAMIDE RIBOSIDE]
+    biomarcador: BUBR1 protein in patient lymphoblastoid cells or fibroblasts; mitotic timing with nocodazole
+
+  - id: H2
+    nombre: Rescue the nonsense allele (read-through ± NMD inhibition)
+    bloqueo: "UGA-A stop context plus NMD; the agents that correct UGA are not approved"
+    modo: restore
+    eje: correct
+    nivel_mecanismo: mRNA/translation (acts on the null allele)
+    ajuste: 0.15
+    razon: >-
+      Mechanistically attractive but, on current evidence, NOT achievable with approved drugs. Allele-specific
+      analysis (scripts/t2/contexto_stop.py): the stop is UGA (the most permissive identity) but the +4 base is A,
+      and the +4 preference is C > U > A/G, so the context is poor; exon 17/23 also predicts NMD of most of the
+      template. Of the approved candidates, ataluren's read-through activity is attributed to a luciferase assay
+      artefact and its trials failed; amlexanox raised nonsense-allele mRNA in its original report (PMID 22938201)
+      but did not in independent controlled comparisons (PMIDs 33396210, 37866515).
+      The compounds that genuinely correct UGA (2,6-diaminopurine, G418, SMG1 inhibitors) are not approved and
+      several are toxic. Line kept open as a defined experiment, not as a proposal.
+    evidencia:
+      - {pmid: 22938201, nivel: cell_other, dir: support, nota: "amlexanox raises nonsense-containing mRNA AND yields functional full-length protein in human cells"}
+      - {pmid: 35234827, nivel: feasibility_other, dir: support, nota: "systemic gentamicin read-through in a patient (PLEC1)"}
+      - {pmid: 18932004, nivel: target_same_gene, dir: support, nota: "BUBR1 function is dosage dependent"}
+      - {pmid: 23824517, nivel: cell_other, dir: contrary, nota: "ataluren read-through activity attributed to an off-target firefly-luciferase artefact; CF phase 3 failed, EMA did not renew DMD authorisation -> dropped from our candidate list"}
+      - {pmid: 38509072, nivel: cell_other, dir: contrary, nota: "extended stop-codon context predicts readthrough: +4 preference C > U > A/G; this allele is UGA-A, i.e. a poor context"}
+      - {pmid: 33396210, nivel: cell_other, dir: contrary, nota: "amlexanox did not raise G542X CFTR mRNA and showed no synergy with an SMG1 inhibitor (McHugh 2021)"}
+      - {pmid: 37866515, nivel: cell_other, dir: contrary, nota: "amlexanox (and PTC124) ineffective on a factor V nonsense mutation (Todaro 2024)"}
+      - {pmid: 32198346, nivel: cell_other, dir: support, nota: "2,6-diaminopurine potently corrects UGA nonsense mutations (FTSJ1 inhibition) - but NOT an approved drug; future direction"}
+    semillas: [AMLEXANOX]
+    biomarcador: full-length BUBR1 by western blot in patient cells after exposure; minigene/reporter with the UGA context
+
+  - id: H3
+    nombre: Dampen mTORC1 hyperactivity to treat the progeroid / sarcopenic component
+    bloqueo: "aneugenic in vitro; immunosuppressive; extra myelotoxicity in paediatric RMS (ARST1431)"
+    modo: compensate
+    eje: tolerate
+    nivel_mecanismo: downstream pathway (genotype-specific phenotype)
+    # M bajado de 0,7 a 0,6 (4 oct): la correlación sarcopenia-mTORC1 se describió en ratones con UN alelo MVA; el
+    # genotipo que reproduce el del niño (truncante + missense del dominio quinasa, X753/L1002P) murió prematuramente.
+    ajuste: 0.6
+    razon: >-
+      Sarcopenia correlated with mTORC1 hyperactivity in mice carrying a single MVA BubR1 allele; the biallelic
+      truncating + kinase-domain genotype that mirrors this child died prematurely in the same study, and the viable
+      biallelic model (H/L1002P) is hypomorph + missense, not null + missense. No mTOR inhibitor was given. The
+      patient has skeletal muscle atrophy. In children with rhabdomyosarcoma, temsirolimus added to VAC/VI was
+      feasible but gave no event-free-survival gain and more grade 3-4 anaemia, with one treatment-related death.
+    evidencia:
+      - {pmid: 31738183, nivel: target_same_gene, dir: support, nota: "TARGET VALIDATION, and in MONOALLELIC carriers: sarcopenia correlated with mTORC1 hyperactivity in mice carrying one MVA BubR1 allele. The genotype that mirrors this child (X753/L1002P) died prematurely; no mTOR inhibitor was given"}
+      - {pmid: 19587680, nivel: mouse_other, dir: support, nota: "rapamycin extends lifespan in mice"}
+      - {pmid: 38936378, nivel: feasibility_other, dir: support, nota: "ARST1431, 297 children with RMS: temsirolimus + VAC/VI feasible but no EFS gain (HR 0.86); grade 3-4 anaemia 58% vs 41% and one treatment-related death (see harm)"}
+      - {fuente: "SigCom LINCS (scripts/t2/cmap.py)", nivel: cell_same_gene, dir: contrary, nota: "mTOR inhibitors MIMIC the BUB1B-knockout signature (sirolimus 8 cell lines): they deepen the anti-proliferative arm"}
+      - {pmid: 21884345, nivel: feasibility_other, dir: support, nota: "no adverse effect of sirolimus on linear growth in 25 children (cf. case report PMID 19495804)"}
+      - {pmid: 41820377, nivel: animal_other, dir: support, nota: "Drosophila MVA-like microcephaly (SAC gene depleted in neural stem cells): feeding rapamycin partially rescued the NUMBER OF ANEUPLOID neuroblasts - by our own taxonomy a TOLERATE effect - but not progeny number or brain size"}
+      - {pmid: 9914383, nivel: cell_other, dir: harm, nota: "rapamycin caused chromosome malsegregation and CREST-positive micronuclei in human lymphocytes and lymphoblasts (single in-vitro study, 1998, not replicated); the centrosome-number abnormalities were seen in Chinese-hamster CHEF cells. Reason to monitor missegregation, not proof of harm"}
+    riesgo_curado:
+      penalizacion: 0.2
+      motivo: "rapamycin causes chromosome malsegregation in human lymphocytes (one in-vitro study, PMID 9914383); added grade 3-4 anaemia and one death with temsirolimus in paediatric RMS (PMID 38936378); not label-derived"
+    semillas: [SIROLIMUS, EVEROLIMUS]
+    dianas_expandir: [MTOR]
+    biomarcador: phospho-S6 in muscle/PBMC; lean mass by DXA; grip strength
+
+  - id: H4
+    nombre: Clear or silence senescent cells generated by chronic aneuploidy (senolytics/senomorphics)
+    bloqueo: "no senolytic ever tested in a BubR1 model; best human RCT missed its endpoint"
+    modo: compensate
+    eje: clear
+    nivel_mecanismo: cell population (consequence of aneuploidy)
+    ajuste: 0.6
+    razon: >-
+      Genetic clearance of p16Ink4a-positive senescent cells in BubR1 hypomorphic mice delayed sarcopenia,
+      cataracts and lipodystrophy and attenuated established pathology. MVA BubR1 alleles differ in SASP complexity.
+      Pharmacological senolytics have NOT been tested in a BubR1 model: a clear, testable gap. Developmental roles
+      of senescence argue for intermittent ("hit-and-run") dosing and caution in a growing child.
+    evidencia:
+      - {pmid: 22048312, nivel: mouse_same_gene, dir: support, nota: "INK-ATTAC clearance in BubR1 H/H mice delays ageing phenotypes"}
+      - {pmid: 31738183, nivel: target_same_gene, dir: support, nota: "TARGET VALIDATION: allele-specific SASP complexity in skeletal muscle"}
+      - {pmid: 38956196, nivel: human_other, dir: contrary, nota: "best senolytic RCT to date (D+Q, phase 2, n=60) MISSED its primary endpoint (bone resorption, p=0.611)"}
+      - {pmid: 30616998, nivel: human_other, dir: contrary, nota: "IPF first-in-human pilot: physical function improved but lung function unchanged"}
+    semillas: [DASATINIB, QUERCETIN, FISETIN]
+    biomarcador: p16INK4A/CDKN2A expression in T cells; circulating SASP factors
+
+  - id: H5
+    nombre: Selectively stress aneuploid cells (chemoprevention by AMPK activation / autophagy inhibition)
+    bloqueo: "cell-line evidence only; would also deplete normal mosaic tissue"
+    modo: compensate
+    eje: clear
+    nivel_mecanismo: cell population (aneuploid-selective vulnerability)
+    ajuste: 0.4
+    razon: >-
+      Aneuploid cells carry proteotoxic and energy stress; AICAR (AMPK agonist), 17-AAG (HSP90) and chloroquine
+      selectively impair aneuploid cells. Metformin (AMPK activation, approved >= 10 y) and hydroxychloroquine are
+      approved proxies. Hypothesis-level only: in widespread mosaicism, removing aneuploid cells could also deplete
+      tissues, so this is framed as long-term tumour chemoprevention to be tested in patient cells first.
+      IMPORTANT, and the reason 17-AAG is NOT carried forward: the aneuploidy-selective agent of this trio that
+      works through HSP90 is an ANTI-TARGET for this particular genotype. HSP90 is the chaperone that folds
+      kinase-domain BUBR1 missense mutants, and inhibiting it removes them via the proteasome (Suijkerbuijk 2010,
+      Fig. 3C). A drug chosen from the downstream phenotype can therefore worsen the upstream genetic lesion.
+      The two HSP90 objections are recorded as notes and do NOT lower this line's evidence score: they concern
+      17-AAG, which is not a candidate here, not the AMPK (metformin) or autophagy (hydroxychloroquine) arms.
+    evidencia:
+      - {pmid: 21315436, nivel: cell_other, dir: support, nota: "AICAR, 17-AAG, chloroquine are aneuploidy-selective"}
+      - {pmid: 20516114, nivel: cell_same_gene, dir: note, nota: "ANTI-TARGET for this genotype: HSP90 inhibition (geldanamycin) removes virtually all kinase-domain mutant BUBR1 while barely affecting wild-type; MG132 blocks that clearance. So the aneuploidy-selective HSP90 arm of this line would destroy the residual protein the patient depends on"}
+      - {pmid: 25205676, nivel: cell_other, dir: note, nota: "aneuploid human cells already have impaired HSP90-dependent folding and a compromised heat-shock response, so the chaperone reserve this genotype relies on is the one aneuploidy has already eroded (feedback loop, see caso.bucle_hsp90)"}
+    semillas: [METFORMIN, HYDROXYCHLOROQUINE]
+    biomarcador: fraction of aneuploid cells (interphase FISH / single-cell sequencing) in cultured patient cells
+
+  - id: H6
+    nombre: Dampen the chronic interferon response of chromosomal instability (cGAS–STING → JAK–STAT)
+    bloqueo: "may weaken immune clearance of aneuploid cells; no interferon signature measured in MVA"
+    modo: compensate
+    eje: tolerate
+    nivel_mecanismo: signalling consequence of aneuploidy (biomarker-gated; class-consistent in the knockout signature)
+    ajuste: 0.4
+    razon: >-
+      Biomarker-gated line. The consensus transcriptional signature of BUB1B knockout (32 CRISPR signatures, 20 cell lines,
+      LINCS L1000) is dominated by interferon-alpha/gamma, TNF/NF-kB and p53 programmes, the expected response to
+      micronuclei sensed by cGAS–STING. JAK inhibitors reverse the signature as a class, though none near the top of the
+      reverser list (ranks 15-154 of 539; fedratinib 3/0 cell lines, baricitinib 2/0, tofacitinib 2/0, ruxolitinib 2/1). Major caveat: the same
+      inflammatory signal helps the immune system clear aneuploid cells, so JAK inhibition could weaken tumour
+      immunosurveillance in a cancer-predisposed child; candidate only for inflammatory morbidity, never as
+      chemoprevention.
+    evidencia:
+      - {fuente: "SigCom LINCS (scripts/t2/cmap.py)", nivel: target_same_gene, dir: support, nota: "TARGET VALIDATION ONLY: JAK inhibitors reverse the BUB1B-knockout signature in cell lines; reversing a signature is not a clinical benefit"}
+      - {pmid: 28738408, nivel: target_other, dir: support, nota: "cGAS senses micronuclei: genome instability -> innate immunity"}
+      - {pmid: 29342134, nivel: target_other, dir: support, nota: "chromosomal instability drives a cytosolic DNA (cGAS-STING) response"}
+      - {pmid: 26578790, nivel: mouse_other, dir: support, nota: "JAK inhibition alleviates SASP and frailty in old mice"}
+      - {pmid: 39169218, nivel: target_same_gene, dir: support, nota: "TARGET VALIDATION ONLY (not benefit): Nat Rev Genet review of MVA: patients show cellular and systemic stress including a CHRONIC IMMUNE RESPONSE - human-level support for the interferon signature we found"}
+      - {pmid: 29649002, nivel: human_other, dir: support, nota: "baricitinib benefit in children with interferonopathies incl. SAVI (constitutive STING activation, the same STING->interferon axis): precedent for paediatric JAK inhibition against a chronic interferon signature"}
+      - {pmid: 28633018, nivel: cell_other, dir: harm, nota: "pro-inflammatory signals from aneuploid cells drive their immune clearance"}
+    riesgo_curado:
+      penalizacion: 0.2
+      motivo: "the inflammatory signal of aneuploid cells drives their immune clearance (PMID 28633018): blocking it may weaken tumour immunosurveillance; not label-derived"
+    semillas: [RUXOLITINIB, BARICITINIB, TOFACITINIB, FEDRATINIB]
+    biomarcador: interferon-stimulated gene score in blood; micronuclei frequency in lymphocytes
+
+  - id: H7
+    nombre: Buffer the consequences of aneuploidy (proteostasis amplification and redox support)
+    bloqueo: "raising HSF1 is aneuploidy-tolerating; antioxidants promote tumours in mice"
+    modo: compensate
+    eje: correct
+    eje_riesgo: tolerate     # el MISMO mecanismo que podría plegar el alelo mutante hace viables las células aneuploides
+    nivel_mecanismo: protein folding and redox capacity (cell-wide)
+    ajuste: 0.3
+    razon: >-
+      Considered because it is a commonly proposed alternative for this genotype, and
+      declined on an explicit argument rather than by omission. The lever is real: kinase-domain BUBR1 missense
+      mutants depend on HSP90 for folding and are cleared by the proteasome without it, and aneuploid cells have a
+      degraded chaperone reserve, so amplifying the heat-shock response (arimoclomol, approved for Niemann-Pick C
+      with miglustat) or chemical chaperones (sodium phenylbutyrate) could in principle raise folded mutant BUBR1.
+      The objection is specific and comes from the same paper that validates the lever: raising HSF1 is the first
+      described ANEUPLOIDY-TOLERATING event in human cells - it makes aneuploid cells viable. In a child with a
+      cancer-predisposition syndrome and a prior rhabdomyosarcoma, a drug whose mechanism is to help
+      chromosomally abnormal cells survive is taking the wrong side of the trade-off, and the same reasoning
+      applies to antioxidants, which accelerate tumour progression and metastasis in mouse models. Kept as a
+      reserve line, reopened only if rung 1 confirms scenario A AND an assay shows the gain is specific to
+      restoring BUBR1 rather than to general survival of aneuploid cells.
+    evidencia:
+      - {pmid: 20516114, nivel: target_same_gene, dir: support, nota: "mutant BUBR1 stability depends on HSP90 (geldanamycin removes it) and on the proteasome (MG132 blocks clearance): proteostasis is a genuine lever on this allele class"}
+      - {pmid: 25205676, nivel: cell_other, dir: support, nota: "raising HSF1 restores HSP90 expression and protein folding in aneuploid human cells: the lever works in exactly the cell state this child has"}
+      - {pmid: 41820377, nivel: animal_other, dir: support, nota: "Drosophila MVA-like microcephaly: genetic over-expression of ROS scavengers or mitochondrial chaperones rescued brain size - the only MVA-model support for the redox arm (genetic, not a drug)"}
+      - {pmid: 34418116, nivel: feasibility_other, dir: support, nota: "arimoclomol RCT in Niemann-Pick C: approved medicine with paediatric experience (feasibility and tolerability, NOT evidence of benefit in MVA)"}
+      - {pmid: 25205676, nivel: cell_other, dir: harm, nota: "DECISIVE: the same study identifies HSF1 overexpression as the first ANEUPLOIDY-TOLERATING mutation in human cells - the mechanism's benefit is inseparable from making chromosomally abnormal cells viable"}
+      - {pmid: 24477002, nivel: mouse_other, dir: harm, nota: "antioxidants accelerate lung cancer progression in mice (the redox arm of this line)"}
+      - {pmid: 31257027, nivel: mouse_other, dir: harm, nota: "antioxidants stabilise BACH1 and stimulate lung cancer metastasis"}
+    riesgo_curado:
+      penalizacion: 0.3
+      motivo: "mechanism is inseparable from aneuploidy tolerance: HSF1 amplification makes chromosomally abnormal cells viable (PMID 25205676); not label-derived"
+    condiciones: "Reserve line. Reopen only if rung 1 confirms scenario A and an assay separates BUBR1 restoration from general survival of aneuploid cells (e.g. micronuclei must fall, not just cell number rise)"
+    semillas: [ARIMOCLOMOL, ACETYLCYSTEINE, SODIUM PHENYLBUTYRATE]
+    biomarcador: folded/total BUBR1 and micronucleus frequency in the same cells; aneuploid fraction must not rise
+
+  - id: S1
+    nombre: Drugs to avoid or dose-adapt (safety card for a child with a weak spindle checkpoint)
+    modo: avoid
+    eje: avoid
+    nivel_mecanismo: drug–genotype interaction
+    ajuste: 0.9
+    razon: >-
+      Antimitotic microtubule poisons (vinca alkaloids, taxanes, eribulin) act through checkpoint-dependent mitotic
+      arrest; with low BUBR1 the prediction is two-sided: cells may slip out of mitosis and missegregate (lower tumour
+      efficacy, more chromosomal damage in normal proliferating tissue) or fail to sustain arrest and die faster
+      (more sensitivity, more toxicity). Either way the conclusion is closer monitoring, not avoidance. Genomic-instability disorders show exquisite chemotherapy
+      sensitivity; MVA case reports describe severe toxicity to dactinomycin and the use of reduced-intensity
+      chemotherapy for rhabdomyosarcoma. Growth hormone for short stature requires caution in cancer
+      predisposition syndromes.
+    evidencia:
+      - {pmid: 39264246, nivel: human_other, dir: support, nota: "AACR 2024: genomic instability disorders incl. MVA, chemo sensitivity, surveillance"}
+      - {pmid: 31184400, nivel: human_same_gene, dir: support, nota: "RMS in PCS-MVA treated with reduced-intensity chemotherapy"}
+      - {pmid: 31081598, nivel: human_same_gene, dir: support, nota: "biallelic BUB1B: severe adverse reaction to dactinomycin"}
+      - {pmid: 22544748, nivel: cell_other, dir: support, nota: "checkpoint silencing proteins modulate antimitotic sensitivity"}
+      - {pmid: 35319491, nivel: human_other, dir: support, nota: "GH safety consensus in cancer survivors"}
+      - {fuente: "SigCom LINCS (scripts/t2/cmap.py)", nivel: cell_same_gene, dir: support, nota: "DNA-damaging agents (anthracyclines, topoisomerase inhibitors, irinotecan, antimetabolites) MIMIC the BUB1B-knockout signature"}
+      - {pmid: 40607964, nivel: mouse_same_gene, dir: support, nota: "BubR1 insufficiency causes cardiac hypertrophy, fibrosis and senescence -> extra caution with cardiotoxic anthracyclines"}
+      - {pmid: 27922816, nivel: mouse_same_gene, dir: support, nota: "BubR1 hypomorphic mice show CENTRAL nervous system hypomyelination and motor deficits; peripheral nerves were not studied, so this does not by itself predict vincristine neuropathy"}
+      - {pmid: 20516114, nivel: cell_same_gene, dir: support, nota: "HSP90 INHIBITORS AS A CLASS (none currently approved, but used in oncology trials): geldanamycin removes virtually all kinase-domain mutant BUBR1 while sparing wild-type, so an HSP90 inhibitor would be expected to deplete the residual protein this child depends on. Added to the card pre-emptively"}
+      - {pmid: 9914383, nivel: cell_other, dir: support, nota: "mTOR inhibitors: rapamycin itself causes chromosome malsegregation and CREST-positive micronuclei in human lymphocytes, so even our own candidate H3 needs missegregation monitoring, not only efficacy monitoring"}
+    semillas: [VINCRISTINE, VINORELBINE, VINBLASTINE, PACLITAXEL, DOCETAXEL, ERIBULIN, DACTINOMYCIN, IRINOTECAN, DOXORUBICIN, SOMATROPIN]
+    biomarcador: pharmacogenomic note in the medical record; therapeutic drug monitoring; neuropathy and blood counts

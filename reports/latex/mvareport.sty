@@ -1,0 +1,131 @@
+% mvareport.sty — estilo común de los informes del MVA Hackathon 2026 (LuaLaTeX).
+% Tipografía IBM Plex (la misma del vídeo y de las figuras), paleta validada de las figuras, A4.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mvareport}[2026/10/03 MVA hackathon report style]
+
+\RequirePackage[a4paper,top=22mm,bottom=22mm,left=21mm,right=21mm,headheight=14pt,headsep=8mm]{geometry}
+\RequirePackage{fontspec}
+\RequirePackage[british]{babel}
+\RequirePackage{microtype}
+\RequirePackage[table]{xcolor}
+\RequirePackage{graphicx,booktabs,tabularx,array,multirow,makecell,colortbl,xltabular,needspace}
+\RequirePackage{enumitem}
+\RequirePackage{titlesec}
+\RequirePackage{fancyhdr}
+\RequirePackage[font={small,sf},labelfont={bf,sf},labelsep=period,justification=raggedright,singlelinecheck=false,skip=5pt]{caption}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,shapes.geometric,fit,backgrounds,decorations.pathreplacing}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage[hidelinks]{hyperref}
+\RequirePackage{xurl}
+\RequirePackage{float}
+\RequirePackage[section]{placeins}   % los flotantes no saltan de sección
+\renewcommand{\topfraction}{0.85}\renewcommand{\bottomfraction}{0.6}\renewcommand{\textfraction}{0.12}
+\renewcommand{\floatpagefraction}{0.75}\setcounter{topnumber}{3}\setcounter{totalnumber}{5}
+
+% --- tipografía -------------------------------------------------------------------------------------------
+\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\setmainfont{IBMPlexSerif}[Path=fonts/,Extension=.ttf,UprightFont=*-Regular,ItalicFont=*-Italic,
+  BoldFont=*-SemiBold,BoldItalicFont=*-SemiBoldItalic,Scale=1.0]
+\setsansfont{IBMPlexSans}[Path=fonts/,Extension=.ttf,UprightFont=*-Regular,ItalicFont=*-Italic,
+  BoldFont=*-SemiBold,BoldItalicFont=*-SemiBoldItalic]
+\setmonofont{IBMPlexMono}[Path=fonts/,Extension=.ttf,UprightFont=*-Regular,BoldFont=*-SemiBold,Scale=0.92,Ligatures=TeXOff]
+\linespread{1.08}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4.2pt plus 1pt}
+\frenchspacing
+\setlength{\emergencystretch}{2.5em}
+
+% --- colores (paleta validada de las figuras) ---------------------------------------------------------------
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{ink2}{HTML}{52514E}
+\definecolor{muted}{HTML}{8A8984}
+\definecolor{rule}{HTML}{D9D8D3}
+\definecolor{panel}{HTML}{F5F7FA}
+\definecolor{brand}{HTML}{2A78D6}
+\definecolor{branddark}{HTML}{184F95}
+\definecolor{accent}{HTML}{EB6834}
+\definecolor{good}{HTML}{0CA30C}
+\definecolor{critical}{HTML}{D03B3B}
+\definecolor{violet}{HTML}{4A3AA7}
+\definecolor{aqua}{HTML}{1BAF7A}
+\color{ink}
+\hypersetup{colorlinks=true,linkcolor=branddark,urlcolor=branddark,citecolor=branddark}
+
+% --- títulos -----------------------------------------------------------------------------------------------
+\titleformat{\section}{\sffamily\bfseries\Large\color{ink}}{\color{brand}\thesection}{0.6em}{}[\vspace{1pt}{\color{rule}\titlerule[0.6pt]}]
+\titleformat{\subsection}{\sffamily\bfseries\large\color{ink}}{\color{brand}\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\sffamily\bfseries\normalsize\color{ink2}}{}{0em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{7pt}{2pt}
+
+% --- cabecera y pie ----------------------------------------------------------------------------------------
+\newcommand{\reporttrack}{}
+\newcommand{\reportshort}{}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\sffamily\footnotesize\color{muted}MVA HACKATHON 2026\enspace·\enspace\reporttrack}
+\fancyhead[R]{\sffamily\footnotesize\color{muted}\reportshort}
+\fancyfoot[L]{\sffamily\footnotesize\color{muted}aperezcastro\enspace·\enspace github.com/aperezcastro/hackaton-genetico}
+\fancyfoot[R]{\sffamily\footnotesize\color{ink2}\thepage}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[R]{\sffamily\footnotesize\color{ink2}\thepage}}
+
+% --- listas y tablas ---------------------------------------------------------------------------------------
+\setlist{leftmargin=1.3em,itemsep=1.5pt,topsep=2pt,parsep=0pt}
+\setlist[itemize]{label={\color{brand}\textbullet}}
+\renewcommand{\arraystretch}{1.18}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\tablefont}{\sffamily\footnotesize}
+\renewcommand{\thead}[1]{\textcolor{ink2}{\bfseries #1}}
+\setlength{\aboverulesep}{0.3ex}\setlength{\belowrulesep}{0.5ex}
+
+% --- cajas -------------------------------------------------------------------------------------------------
+\newtcolorbox{keybox}[1][]{enhanced,breakable,colback=panel,colframe=panel,boxrule=0pt,arc=2pt,
+  borderline west={2.4pt}{0pt}{brand},left=9pt,right=8pt,top=6pt,bottom=6pt,
+  fonttitle=\sffamily\bfseries,coltitle=branddark,attach title to upper={\par\smallskip},#1}
+\newtcolorbox{cautionbox}[1][]{enhanced,breakable,colback=accent!6,colframe=accent!6,boxrule=0pt,arc=2pt,
+  borderline west={2.4pt}{0pt}{accent},left=9pt,right=8pt,top=6pt,bottom=6pt,
+  fonttitle=\sffamily\bfseries,coltitle=accent!80!black,attach title to upper={\par\smallskip},#1}
+\newcommand{\statnum}[2]{\begin{minipage}[t]{0.23\linewidth}\raggedright{\sffamily\bfseries\Large\color{branddark}#1}\\[-1pt]{\sffamily\scriptsize\color{ink2}#2}\end{minipage}}
+
+% --- utilidades --------------------------------------------------------------------------------------------
+\newcommand{\gene}[1]{\textit{#1}}
+\newcommand{\pmid}[1]{\href{https://pubmed.ncbi.nlm.nih.gov/#1/}{PMID~#1}}
+\newcommand{\nct}[1]{\href{https://clinicaltrials.gov/study/#1}{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\tagpill}[2]{\tikz[baseline=(t.base)]\node[fill=#1!14,text=#1!70!black,rounded corners=2pt,inner xsep=3pt,inner ysep=1.2pt,font=\sffamily\scriptsize\bfseries](t){#2};}
+\newcommand{\arr}{\ensuremath{\rightarrow}}
+\newcommand{\nadp}{NAD\textsuperscript{+}}
+
+% --- portada (cabecera de la primera página) ----------------------------------------------------------------
+\newcommand{\reportheader}[5]{% #1 etiqueta, #2 título, #3 subtítulo, #4 línea de autor, #5 nota
+  \thispagestyle{plain}
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[brand] (current page.north west) rectangle ([yshift=-7mm]current page.north east);
+  \end{tikzpicture}
+  \vspace*{-4mm}
+  {\sffamily\small\bfseries\color{brand}\MakeUppercase{#1}}\par\vspace{3pt}
+  {\sffamily\bfseries\fontsize{21}{25}\selectfont\color{ink}#2\par}\vspace{5pt}
+  {\sffamily\large\color{ink2}#3\par}\vspace{7pt}
+  {\sffamily\small\color{ink2}#4\par}\vspace{3pt}
+  {\color{rule}\rule{\linewidth}{0.6pt}}\par\vspace{2pt}
+  {\sffamily\footnotesize\color{muted}#5\par}\vspace{6pt}}
+
+% --- citas autor-año ligeras (sin biblatex): \defref{clave}{Autor et al.}{Año} ---------------------------
+\makeatletter
+\newcommand{\defref}[3]{\@namedef{mvaA@#1}{#2}\@namedef{mvaY@#1}{#3}}
+\def\mva@list#1{\def\mva@sep{}\@for\mva@k:=#1\do{\mva@sep\@ifundefined{mvaA@\mva@k}{\textbf{??\mva@k}}{\@nameuse{mvaA@\mva@k}~\@nameuse{mvaY@\mva@k}}\def\mva@sep{; }}}
+\DeclareRobustCommand{\citet}[1]{\@nameuse{mvaA@#1}~(\@nameuse{mvaY@#1})}
+\DeclareRobustCommand{\citealp}[1]{\mva@list{#1}}
+\DeclareRobustCommand{\citep}[1]{(\mva@list{#1})}
+\makeatother
+
+% lista de referencias con sangría francesa
+\newenvironment{refs}{\small\begin{list}{}{\setlength{\leftmargin}{1.4em}\setlength{\itemindent}{-1.4em}
+  \setlength{\itemsep}{1.6pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}}}{\end{list}}
+
+\endinput

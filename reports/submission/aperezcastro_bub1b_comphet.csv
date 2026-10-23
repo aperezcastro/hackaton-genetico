@@ -1,0 +1,4 @@
+proband_id,chrom_1,pos_1,ref_1,alt_1,chrom_2,pos_2,ref_2,alt_2,epcr,finding_type,notes
+PROBAND01,chr15,40209701,T,G,chr15,40220612,T,G,0.95,primary,"BUB1B (NM_001211.6) compound heterozygous: c.2210T>G p.(Leu737*) [ClinVar P/LP, PVS1] + c.3006T>G p.(Asn1002Lys) [kinase domain, ultra-rare, AlphaMissense 0.92, MVP 0.85]; MVA type 1 (null + hypomorphic); Exomiser rank 1; phase not determinable from short reads"
+PROBAND01,chr15,40209701,T,G,chr15,40216470,A,G,0.03,primary,"Alternative second allele: BUB1B c.2679-1026A>G deep intronic, absent gnomAD, SpliceAI delta 0.00 (D=50 and 2000) - unlikely"
+PROBAND01,chr15,40220612,T,G,chr15,40216470,A,G,0.01,primary,"Alternative pairing without the truncating allele - unlikely"

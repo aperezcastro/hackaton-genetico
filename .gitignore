@@ -1,0 +1,51 @@
+# ============================================================
+# DATOS CONTROLADOS DEL PACIENTE — NUNCA SE SUBEN A GIT
+# (reglas del hackathon: sin redistribución, borrado a los 30 días)
+# ============================================================
+data/
+results/
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.vcf.gz.csi
+*.bcf
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.bai
+*.cram
+*.crai
+*.gvcf*
+*.parquet
+*.h5
+*.tsv.gz
+# Cachés de anotación / referencias (pesadas, reproducibles)
+refs/
+vep_cache/
+*.fa
+*.fa.gz
+*.fasta
+*.fasta.gz
+*.fai
+# Notebooks: el estado puede contener genotipos -> limpiar salidas antes de commitear
+.ipynb_checkpoints/
+# Python / entorno
+__pycache__/
+*.pyc
+.venv/
+.env
+# Medios y registros
+*.wav
+*.mp3
+*.mp4
+*.log
+*.pcm
+# LaTeX: auxiliares (los PDF finales sí se versionan)
+reports/latex/*.aux
+reports/latex/*.fls
+reports/latex/*.fdb_latexmk
+reports/latex/*.out
+reports/latex/*.toc
+reports/latex/fig/*.png
